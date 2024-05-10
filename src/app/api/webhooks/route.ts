@@ -22,19 +22,23 @@ export async function POST(req: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
+
     if (event.type === "checkout.session.completed") {
       if (!event.data.object.customer_details?.email) {
         throw new Error("Missing user email");
       }
+
       const session = event.data.object as Stripe.Checkout.Session;
 
       const { userId, orderId } = session.metadata || {
         userId: null,
         orderId: null,
       };
+
       if (!userId || !orderId) {
         throw new Error("Invalid request metadata");
       }
+
       const billingAddress = session.customer_details!.address;
       const shippingAddress = session.shipping_details!.address;
 
@@ -86,9 +90,11 @@ export async function POST(req: Request) {
         }),
       });
     }
+
     return NextResponse.json({ result: event, ok: true });
   } catch (err) {
     console.error(err);
+
     return NextResponse.json(
       { message: "Something went wrong", ok: false },
       { status: 500 }
